@@ -1,24 +1,29 @@
-import {BrowserRouter as Router, Switch, Route, Link, Redirect} from "react-router-dom";
-import './App.css';
-import Home from "./components/Home";
-import About from "./components/About";
-import NotFound from "./components/NotFound";
-import Orders from "./components/Orders";
+import React, {useState, useEffect} from "react";
+import DataTable from '../src/components/DataTable'
+require("es6-promise").polyfill()
+require("isomorphic-fetch")
+
 function App() {
+    const [data, setData] = useState([])
+    const [query, setQuery] = useState("")
+
+    useEffect(()=>{
+        fetch("https://jsonplaceholder.typicode.com/posts")
+            .then((res)=>res.json())
+            .then((json)=>setData(json))
+    },[])
+    function search(rows){
+        const columns = rows[0] && Object.keys(rows[0])
+        return rows.filter((row)=>columns.some((column)=>row[column].toString().toLowerCase().indexOf(query.toString())>-1))
+    }
+
+
   return (
     <div className="App">
-        <Router >
-            <li><Link to='/home'>HOME</Link></li>
-            <li><Link to='/about'>ABOUT</Link></li>
-            <li><Link to='/orders'>ORDERS</Link></li>
-
-            <Switch>
-                <Route path='/home' component={Home}/>
-                <Route path='/about' component={About}/>
-                <Route path='/orders' component={Orders}/>
-                <Route component={NotFound}/>
-            </Switch>
-        </Router>
+       <div>
+           <input type="text" value={query} onChange={(e)=>setQuery(e.target.value)}/>
+       </div>
+       <div><DataTable data={search(data)}/></div>
     </div>
   );
 }
